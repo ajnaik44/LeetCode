@@ -1,0 +1,72 @@
+package com.crr.dsa.crackingtheinterview;
+
+
+
+import java.util.Arrays;
+
+public class Solution1 {
+
+	final private static int FIRST  = 0b111_1111_110;
+	final private static int SECOND = 0b000_1111_000;
+	final private static int THIRD  = 0b000_0000_111;
+	final private static int FOUR  =  0b000_0000_111;
+	final private static int ROW_FAMILY_GROUPS[] = { FIRST, SECOND, THIRD }; 
+	
+	public static void main(String[] args) {
+		String reservedSeats = "1A 2F 1C";
+		
+		Solution1 sol = new Solution1();
+		
+		int N = 2;
+		System.out.println("Example of algorithm run :\nN = " + N 
+				+ "\nfor given taken seats :\"" + reservedSeats 
+				+ "\"\nresult is : " + sol.solution(N, reservedSeats) );
+	}
+	
+	public int solution(int N, String S) {
+		// table of reserved seats, row after row
+		// seats in each row are represented by bits : 1 for taken and 0 for free one
+		// eg. [100_0000_000][000_1000_001]
+		final int seats[] = new int[N];
+		
+		reserveSeats(S, seats);
+		// printSeats(seats);
+		
+		return (int) Arrays.stream(seats).map(i->(i^0b111_1110_111 | i^0b111_0111_111)) // to pass 1=empty seats only, 0=taken
+		.flatMap(i-> ( Arrays.stream(ROW_FAMILY_GROUPS).map(famGroup-> ((famGroup) == (i&famGroup)) ? 1:0) ) )
+		//.peek(System.out::println) /*debug only */
+		.filter(r->r==1).count();
+		
+	}
+	
+	void reserveSeats(String reservedSeats, int seats[]) {
+		String reservedSeatsTab[] = reservedSeats.split(" ");
+		for(String s : reservedSeatsTab) {
+			convertSeatToBinary(s, seats);
+		}
+	}
+	
+	void convertSeatToBinary(String seat, int seats[]) {
+		if(seat.trim().length()==0) return;
+		
+		final int INPUT_STRING_LENGTH = seat.length();
+		
+		int row = Integer.parseInt(seat.substring(0, INPUT_STRING_LENGTH-1)) - 1;
+		int seatCode = seat.substring(INPUT_STRING_LENGTH-1, INPUT_STRING_LENGTH).toUpperCase().codePointAt(0);
+		//
+		int takenSeat = 0;
+		if(seatCode<73) {// letter I has Unicode 73
+			takenSeat = 1 << (74 - seatCode);
+		} else if(seatCode>73) { // as there is No letter 'I'
+			takenSeat = 1 << (75 - seatCode);
+		}
+		seats[row] = seats[row]  | takenSeat;
+	}
+	
+	private void printSeats(int seats[]) {
+		int N = seats.length;
+		System.out.println(Arrays.toString(seats));
+	}
+	
+
+}
